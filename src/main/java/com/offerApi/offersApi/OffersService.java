@@ -15,12 +15,15 @@ import org.springframework.stereotype.Service;
 @Service
 public class OffersService {
 
-	public void delteFromList(String offerId, List<Offer> offerList){
+	public Offer delteFromList(String offerId, List<Offer> offerList){
 		List<Offer> offerToBeDeleted = offerList.stream()
-				.filter(m -> m.getProductName().equalsIgnoreCase(offerId))
+				.filter(m -> m.offerId == Integer.parseInt(offerId))
 				.collect(Collectors.toList());
+		if(offerToBeDeleted.size()==0){
+			return null;
+		}
 		int index = offerList.indexOf(offerToBeDeleted.get(0));
-		offerList.remove(index);
+		return offerList.remove(index);
 	}
 
 	public void addToList(Offer offer, List<Offer> offerList){
@@ -40,17 +43,25 @@ public class OffersService {
 		StringBuilder stringBuilder = new StringBuilder();
 		List<Offer> offerList = OffersData.getInstance().getOfferList();
 		if(comparator.equalsIgnoreCase("creationTime")){
-			offerList = offerList.stream().sorted(Comparator.comparing(m -> m.getOfferId())).collect(Collectors.toList());
+			offerList = offerList.stream().sorted(Comparator.comparing(Offer::getOfferId)).collect(Collectors.toList());
 		} else if(comparator.equalsIgnoreCase("percentage")){
-			offerList = offerList.stream().sorted(Comparator.comparing(m -> m.getDiscount())).collect(Collectors.toList());
+			offerList = offerList.stream().sorted(Comparator.comparing(Offer::getDiscount)).collect(Collectors.toList());
 		}
 		for(Offer offer : offerList){
-			stringBuilder.append(getStringForOffer(offer, currency));
+			String stringForOffer = getStringForOffer(offer, currency);
+			if(stringForOffer==null){
+				continue;
+			}
+			stringBuilder.append(stringForOffer);
 		}
 		return stringBuilder.toString();
 	}
 
 	String getStringForOffer(Offer offer, String currency) {
+		String timeLeft = this.getTimeLeft(offer.getEndDate(), LocalDateTime.now());
+		if(timeLeft==null){
+			return null;
+		}
 		Map<String, String> currencyConversions = OffersData.getInstance().getCurrencyConversions();
 		DecimalFormat df = new DecimalFormat("#.##");
 		String conversion = String.valueOf(currencyConversions.get("USD" + currency));
@@ -86,7 +97,6 @@ public class OffersService {
 		stringBuilder.append("\n");
 		stringBuilder.append("\n");
 		stringBuilder.append("TIME LEFT:\t");
-		String timeLeft = this.getTimeLeft(offer.getEndDate(), LocalDateTime.now());
 		stringBuilder.append(timeLeft);
 		stringBuilder.append("\n==========================================================\n\n");
 		return stringBuilder.toString();
@@ -119,6 +129,9 @@ public class OffersService {
 		LocalDateTime date = LocalDateTime.parse(dateString, df);
 		Period between = Period.between(now.toLocalDate(), date.toLocalDate());
 		long[] time = getTime(now, date);
+		if(((between.getYears()*365*24*60*60)+(between.getMonths()*30*24*60*60)+(between.getDays()*24*60*60)+(time[0]*60*60)+(time[1]*60)+time[2]-(time[3]*24*60*60))<=0){
+			return null;
+		}
 		return between.getYears() + " years " +
 				between.getMonths() + " months " +
 				(between.getDays() - time[3]) + " days " +

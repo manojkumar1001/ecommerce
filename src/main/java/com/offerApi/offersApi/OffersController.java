@@ -28,19 +28,6 @@ public class OffersController {
 		return new ResponseEntity<>(offersData, HttpStatus.OK);
 	}
 
-	@GetMapping("/")
-	public ResponseEntity<Offer> test(){
-		Offer offer = new Offer();
-		offer.setOfferId(1);
-		offer.setOfferName("Black friday offer");
-		offer.setEndDate("2019-01-02 22:30:00");
-		offer.setDiscount(20.0);
-		offer.setInitialPrice(100.0);
-		offer.setProductName("Mac book pro");
-		offer.setDescription("happy thanks giving");
-		return new ResponseEntity<>(offer, HttpStatus.OK);
-	}
-
 	@GetMapping("/getCurrencies")
 	public ResponseEntity<Map<String, String>> getCurrencies(){
 		Map<String, String> currencyCodes = OffersData.getInstance().getCurrencyCodes();
@@ -62,13 +49,15 @@ public class OffersController {
 	}
 
 	@DeleteMapping("/deleteOffer")
-	public ResponseEntity<String> deleteOffer(String offerId){
+	public ResponseEntity<Offer> deleteOffer(@RequestParam String offerId){
 		List<Offer> offerList = OffersData.getInstance().getOfferList();
-		if(Integer.parseInt(offerId)<0||Integer.parseInt(offerId)>=offerList.size()){
+		if(Integer.parseInt(offerId)<=0){
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
-		offersService.delteFromList(offerId, offerList);
-		return new ResponseEntity<>("deleted", HttpStatus.OK);
+		Offer offer = offersService.delteFromList(offerId, offerList);
+		if(offer==null){
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+		}
+		return new ResponseEntity<>(offer, HttpStatus.OK);
 	}
-
 }
