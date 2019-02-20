@@ -1,4 +1,4 @@
-package com.offerApi.offersApi;
+package com.ecommerce.ecommerce;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -7,7 +7,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-public class OffersApiApplicationTests {
+public class EcommerceApiApplicationTests {
 
 	@Test
 	public void contextLoads() {
